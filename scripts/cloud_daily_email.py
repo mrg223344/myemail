@@ -1,6 +1,6 @@
 import datetime as dt
+import json
 import os
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -8,66 +8,6 @@ from zoneinfo import ZoneInfo
 
 
 ROOT = Path(__file__).resolve().parents[1]
-
-
-MORNING_FILES = {
-    1: "第01天-生理学绪论.md",
-    2: "第02天-跨细胞膜的物质转运.md",
-    3: "第03天-细胞的电活动-静息电位.md",
-    4: "第04天-细胞的电活动-动作电位.md",
-    5: "第05天-横纹肌收缩.md",
-    6: "第06天-血液-组成血浆蛋白.md",
-}
-
-
-EVENING_FILES = {
-    1: "第01天-晚间复盘.md",
-    6: "第06天-晚间复盘-血液-组成血浆蛋白.md",
-}
-
-
-SCHEDULE_TOPICS = {
-    1: "生理学绪论",
-    2: "跨细胞膜的物质转运",
-    3: "细胞的电活动（一）静息电位",
-    4: "细胞的电活动（二）动作电位",
-    5: "横纹肌收缩",
-    6: "血液：组成、血浆蛋白",
-    7: "血细胞生理",
-    8: "红细胞生理",
-    9: "白细胞与血小板",
-    10: "生理性止血 I",
-    11: "生理性止血 II",
-    12: "血型和输血原则",
-    13: "血液循环：心脏泵血过程",
-    14: "血液循环：心脏泵血功能",
-    15: "血液循环：心脏电生理",
-    16: "血液循环：血管生理 I",
-    17: "血液循环：血管生理 II",
-    18: "心血管调节：神经调节",
-    19: "心血管调节：体液调节",
-    20: "冠脉循环",
-    21: "呼吸：肺通气",
-    22: "呼吸：肺换气与气体运输",
-    23: "消化和吸收：概述",
-    24: "消化和吸收：口腔、胃、大肠",
-    25: "消化和吸收：小肠消化吸收",
-    26: "能量代谢",
-    27: "体温及其调节",
-    28: "尿生成和排出 I",
-    29: "尿生成和排出 II",
-    30: "感觉 I：感受器总论",
-    31: "感觉 II：视觉",
-    32: "感觉 III：听觉和平衡觉",
-    33: "神经 I：突触传递",
-    34: "神经 II：外周递质和受体",
-    35: "神经 III：脑电和睡眠",
-    36: "神经 IV：躯体运动调控",
-    37: "内分泌 I：激素分类与作用机制",
-    38: "内分泌 II：生长激素等",
-    39: "内分泌 III：糖皮质激素等",
-    40: "生殖",
-}
 
 
 def local_today() -> dt.date:
@@ -92,26 +32,29 @@ def scheduled_mode() -> str:
     return "morning"
 
 
-def subject_for(mode: str, day: int) -> str:
-    topic = SCHEDULE_TOPICS.get(day, f"第 {day} 天")
+def load_manifest() -> dict:
+    path = ROOT / "content_manifest.json"
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def subject_for(mode: str, day: int, topic: str) -> str:
     if mode == "evening":
         return f"生理第 {day:02d} 天晚间复盘：{topic}"
     return f"生理第 {day:02d} 天：{topic}"
 
 
-def file_for(mode: str, day: int) -> Path:
-    mapping = EVENING_FILES if mode == "evening" else MORNING_FILES
-    filename = mapping.get(day)
+def file_for(mode: str, day: int, manifest: dict) -> tuple[Path, str]:
+    entry = manifest.get(str(day))
+    if not entry:
+        raise SystemExit(f"Missing manifest entry for day {day}.")
+    filename = entry.get(mode)
+    topic = entry.get("topic", f"第 {day} 天")
     if not filename:
-        topic = SCHEDULE_TOPICS.get(day, f"第 {day} 天")
-        raise SystemExit(
-            f"Missing pre-generated {mode} content for day {day}: {topic}. "
-            "Generate this markdown file and add it to scripts/cloud_daily_email.py."
-        )
+        raise SystemExit(f"Missing {mode} content for day {day}: {topic}.")
     path = ROOT / filename
     if not path.exists():
         raise SystemExit(f"Content file not found: {path}")
-    return path
+    return path, topic
 
 
 def send_email(subject: str, body_file: Path) -> None:
@@ -139,8 +82,9 @@ def main() -> None:
         raise SystemExit(f"Day {day} is outside the 1-40 plan.")
 
     mode = scheduled_mode()
-    body_file = file_for(mode, day)
-    subject = subject_for(mode, day)
+    manifest = load_manifest()
+    body_file, topic = file_for(mode, day, manifest)
+    subject = subject_for(mode, day, topic)
     send_email(subject, body_file)
     print(f"Sent {mode} day {day}: {subject}")
 
