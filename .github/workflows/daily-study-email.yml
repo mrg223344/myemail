@@ -1,0 +1,50 @@
+name: Daily physiology study email
+
+on:
+  schedule:
+    # 07:30 Asia/Shanghai = 23:30 UTC on the previous day
+    - cron: "30 23 * * *"
+    # 23:00 Asia/Shanghai = 15:00 UTC
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "morning or evening"
+        required: true
+        default: "morning"
+        type: choice
+        options:
+          - morning
+          - evening
+      day:
+        description: "Optional day number override"
+        required: false
+        type: string
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Send scheduled email
+        env:
+          QQ_SMTP_USER: ${{ secrets.QQ_SMTP_USER }}
+          QQ_SMTP_AUTH_CODE: ${{ secrets.QQ_SMTP_AUTH_CODE }}
+          DAILY_EMAIL_TO: ${{ secrets.DAILY_EMAIL_TO }}
+          START_DATE: "2026-04-30"
+          START_DAY: "6"
+          MANUAL_MODE: ${{ inputs.mode }}
+          MANUAL_DAY: ${{ inputs.day }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_SCHEDULE: ${{ github.event.schedule }}
+        run: python scripts/cloud_daily_email.py
+
