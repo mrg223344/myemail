@@ -1,0 +1,7 @@
+{
+  "last_morning_day": 5,
+  "next_morning_day": 6,
+  "updated_after_manual_send": "2026-04-29",
+  "note": "第1-5天已手动补发；下一次早间自动邮件从第6天开始。晚间复盘应使用当天早间已发送的 last_morning_day。"
+}
+
