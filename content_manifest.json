@@ -1,33 +1,33 @@
 {
   "1": {
     "topic": "生理学绪论",
-    "morning": "?01?-?????.md",
-    "evening": "?01?-????.md"
+    "morning": "content/day01-morning.md",
+    "evening": "content/day01-evening.md"
   },
   "2": {
     "topic": "跨细胞膜的物质转运",
-    "morning": "?02?-?????????.md",
+    "morning": "content/day02-morning.md",
     "evening": "content/day02-evening.md"
   },
   "3": {
     "topic": "细胞的电活动(1)",
-    "morning": "?03?-??????-????.md",
+    "morning": "content/day03-morning.md",
     "evening": "content/day03-evening.md"
   },
   "4": {
     "topic": "细胞的电活动(2)",
-    "morning": "?04?-??????-????.md",
+    "morning": "content/day04-morning.md",
     "evening": "content/day04-evening.md"
   },
   "5": {
     "topic": "横纹肌收缩",
-    "morning": "?05?-?????.md",
+    "morning": "content/day05-morning.md",
     "evening": "content/day05-evening.md"
   },
   "6": {
     "topic": "血液",
-    "morning": "?06?-??-??????.md",
-    "evening": "?06?-????-??-??????.md"
+    "morning": "content/day06-morning.md",
+    "evening": "content/day06-evening.md"
   },
   "7": {
     "topic": "血细胞生理",
